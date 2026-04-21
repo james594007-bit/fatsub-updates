@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
-  "message": "FatSub v1.0.0 已發布！",
-  "download": "https://jamespang-school.lemonsqueezy.com/checkout/buy/ad1b36ba-221e-460d-9d3a-0ea7db23da96"
+  "version": "1.0.1",
+  "message": "v1.0.1 已發布！\n\nMac 版內建 ffmpeg,不用自己裝 brew。\nWindows 版同步更新,點「前往下載」取得最新版。",
+  "download": "https://jamespang-school.com/fatsub/"
 }

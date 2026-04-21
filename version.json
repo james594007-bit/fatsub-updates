@@ -1,5 +1,5 @@
 {
-  "version": "1.0.1",
-  "message": "v1.0.1 已發布！\n\nMac 版內建 ffmpeg,不用自己裝 brew。\nWindows 版同步更新,點「前往下載」會自動抓對應版本。",
+  "version": "1.0.2",
+  "message": "v1.0.2 已發布！\n\n• Mac 版內建 ffmpeg,不用自己裝 brew\n• 修正版本號 UI 顯示錯誤\n• 自動更新通知系統強化",
   "download": "https://james594007-bit.github.io/fatsub-updates/download.html"
 }

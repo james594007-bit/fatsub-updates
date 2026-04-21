@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>FatSub 下載中...</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans TC', sans-serif; text-align: center; padding: 60px 20px; background: #1a1a1a; color: #e0e0e0; margin: 0; }
+  h1 { font-size: 22px; margin: 0 0 12px; }
+  .detected { color: #00bcd4; font-size: 14px; margin-bottom: 30px; }
+  .spinner { border: 3px solid #333; border-top-color: #00bcd4; border-radius: 50%; width: 36px; height: 36px; animation: spin 0.8s linear infinite; margin: 20px auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  p { color: #999; line-height: 1.8; font-size: 13px; }
+  #manual { display: none; margin-top: 30px; padding: 20px; background: #2a2a2a; border-radius: 8px; max-width: 400px; margin-left: auto; margin-right: auto; }
+  a { color: #00bcd4; text-decoration: none; margin: 0 10px; }
+  a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<h1>FatSub 下載中...</h1>
+<p class="detected" id="detected">正在偵測你的系統</p>
+<div class="spinner"></div>
+<p id="hint">如果沒有自動開始下載,請稍候幾秒,或點下方手動選擇。</p>
+<div id="manual">
+  <p style="margin-top:0;">手動選擇版本:</p>
+  <a id="mac-link" href="#">🍎 Mac</a>
+  <a id="win-link" href="#">🪟 Windows</a>
+  <a href="https://jamespang-school.com/fatsub/">官方網站</a>
+</div>
+
+<script>
+const MAC_URL = 'https://github.com/james594007-bit/fatsub-updates/releases/download/v1.0.0/FatSub-1.0.0-arm64.dmg';
+const WIN_URL = 'https://github.com/james594007-bit/fatsub-updates/releases/download/v1.0.0/FatSub.Setup.1.0.0.exe';
+const FALLBACK = 'https://jamespang-school.com/fatsub/';
+
+const ua = navigator.userAgent;
+const platform = navigator.platform || '';
+
+let targetUrl = FALLBACK;
+let platformName = '未知系統,導向官網';
+if (/Mac|iPhone|iPad|iPod/.test(ua) || /Mac/.test(platform)) {
+  targetUrl = MAC_URL;
+  platformName = '偵測到 macOS,正在下載 Mac 版';
+} else if (/Windows/.test(ua) || /Win/.test(platform)) {
+  targetUrl = WIN_URL;
+  platformName = '偵測到 Windows,正在下載 Windows 版';
+}
+
+document.getElementById('detected').textContent = platformName;
+document.getElementById('mac-link').href = MAC_URL;
+document.getElementById('win-link').href = WIN_URL;
+
+setTimeout(() => { window.location.href = targetUrl; }, 600);
+setTimeout(() => { document.getElementById('manual').style.display = 'block'; }, 2500);
+</script>
+</body>
+</html>

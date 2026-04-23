@@ -1,5 +1,5 @@
 {
-  "version": "1.0.3",
-  "message": "v1.0.3 已發布！\n\n• 修正 UI 三處版本號顯示錯誤（側邊欄、視窗標題、關於）\n• Mac 版內建 ffmpeg,不用自己裝 brew\n• 自動更新通知系統強化",
+  "version": "1.0.4",
+  "message": "v1.0.4 已發布！【本次為 macOS 專屬更新】\n\n• 修復 Mac 版 ffmpeg 路徑問題：首次使用會跳出安裝對話框，自動下載與安裝 ffmpeg，不用再手動裝 brew\n• 安裝對話框深色主題優化\n\nWindows 使用者本次無需更新，下載頁仍為舊版。",
   "download": "https://james594007-bit.github.io/fatsub-updates/download.html"
 }

@@ -1,5 +1,5 @@
 {
-  "version": "1.0.4",
-  "message": "v1.0.4 已發布！【本次為 macOS 專屬更新】\n\n• 修復 Mac 版 ffmpeg 路徑問題：首次使用會跳出安裝對話框，自動下載與安裝 ffmpeg，不用再手動裝 brew\n• 安裝對話框深色主題優化\n\nWindows 使用者本次無需更新，下載頁仍為舊版。",
+  "version": "1.0.6",
+  "message": "v1.0.6 已發布！\n\n💾 專案存檔(.fatsub)— 每 5 分鐘自動備份,進度不丟\n🇨🇳🇬🇧 中英混合辨識全新打造,中英分流更準\n🎤 直接拖入音檔(MP3 / WAV / m4a / FLAC / OGG)\n🚀 引擎升級:Mac 速度不變 / Windows NVIDIA 顯卡加速回歸\n⚡ 工作流深化:M 鍵章節 Mark / Tab 跳字幕 / ⌘+J 合併\n🛡 macOS 完整公證,離線開啟零警告\n\n取消 60 分鐘長度限制提示。修多項 Windows bug。",
   "download": "https://james594007-bit.github.io/fatsub-updates/download.html"
 }

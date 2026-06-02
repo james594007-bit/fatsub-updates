@@ -14,23 +14,23 @@
   #manual { display: none; margin-top: 30px; padding: 20px; background: #2a2a2a; border-radius: 8px; max-width: 400px; margin-left: auto; margin-right: auto; }
   a { color: #00bcd4; text-decoration: none; margin: 0 10px; }
   a:hover { text-decoration: underline; }
-  .check { font-size: 48px; color: #4caf50; margin: 10px auto 20px; line-height: 1; }
-  .retry-btn { display: inline-block; margin-top: 16px; padding: 8px 18px; background: #00bcd4; color: #1a1a1a; border-radius: 6px; cursor: pointer; font-size: 13px; }
-  .retry-btn:hover { background: #00e5ff; }
+  .check { color: #00bcd4; font-size: 14px; letter-spacing: 2px; margin: 10px auto 20px; line-height: 1; }
+  .retry-btn { display: inline-block; margin-top: 16px; padding: 8px 18px; background: transparent; color: #00bcd4; border: 1px solid #00bcd4; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .retry-btn:hover { background: #00bcd4; color: #1a1a1a; }
 </style>
 </head>
 <body>
 <h1 id="title">FatSub 下載中...</h1>
 <p class="detected" id="detected">正在偵測你的系統</p>
-<div id="check" class="check" style="display:none;">✅</div>
+<div id="check" class="check" style="display:none;">— DOWNLOAD STARTED —</div>
 <div id="spinner" class="spinner"></div>
 <p id="hint">如果沒有自動開始下載,請稍候幾秒,或點下方手動選擇。</p>
 <div id="manual">
   <p style="margin-top:0;" id="manual-title">手動選擇版本:</p>
-  <a id="mac-link" href="#">🍎 Mac</a>
-  <a id="win-link" href="#">🪟 Windows</a>
+  <a id="mac-link" href="#">Mac</a>
+  <a id="win-link" href="#">Windows</a>
   <a href="https://jamespang-school.com/fatsub/">官方網站</a>
-  <div><span class="retry-btn" id="retry-btn" style="display:none;">🔁 重新下載</span></div>
+  <div><span class="retry-btn" id="retry-btn" style="display:none;">重新下載</span></div>
 </div>
 
 <script>

@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>FatSub 下載中...</title>
+<title>FatSub 下載</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   body { font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans TC', sans-serif; text-align: center; padding: 60px 20px; background: #1a1a1a; color: #e0e0e0; margin: 0; }
@@ -14,18 +14,23 @@
   #manual { display: none; margin-top: 30px; padding: 20px; background: #2a2a2a; border-radius: 8px; max-width: 400px; margin-left: auto; margin-right: auto; }
   a { color: #00bcd4; text-decoration: none; margin: 0 10px; }
   a:hover { text-decoration: underline; }
+  .check { font-size: 48px; color: #4caf50; margin: 10px auto 20px; line-height: 1; }
+  .retry-btn { display: inline-block; margin-top: 16px; padding: 8px 18px; background: #00bcd4; color: #1a1a1a; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .retry-btn:hover { background: #00e5ff; }
 </style>
 </head>
 <body>
-<h1>FatSub 下載中...</h1>
+<h1 id="title">FatSub 下載中...</h1>
 <p class="detected" id="detected">正在偵測你的系統</p>
-<div class="spinner"></div>
+<div id="check" class="check" style="display:none;">✅</div>
+<div id="spinner" class="spinner"></div>
 <p id="hint">如果沒有自動開始下載,請稍候幾秒,或點下方手動選擇。</p>
 <div id="manual">
-  <p style="margin-top:0;">手動選擇版本:</p>
+  <p style="margin-top:0;" id="manual-title">手動選擇版本:</p>
   <a id="mac-link" href="#">🍎 Mac</a>
   <a id="win-link" href="#">🪟 Windows</a>
   <a href="https://jamespang-school.com/fatsub/">官方網站</a>
+  <div><span class="retry-btn" id="retry-btn" style="display:none;">🔁 重新下載</span></div>
 </div>
 
 <script>
@@ -50,8 +55,38 @@ document.getElementById('detected').textContent = platformName;
 document.getElementById('mac-link').href = MAC_URL;
 document.getElementById('win-link').href = WIN_URL;
 
-setTimeout(() => { window.location.href = targetUrl; }, 600);
-setTimeout(() => { document.getElementById('manual').style.display = 'block'; }, 2500);
+function triggerDownload() {
+  // 用 <a download> click 觸發,避免 location.href 讓本頁停在 loading 狀態
+  const a = document.createElement('a');
+  a.href = targetUrl;
+  a.rel = 'noopener';
+  // 同 origin 才能用 download 屬性,GitHub Releases 跨 origin 仍會依 Content-Disposition 觸發下載
+  a.download = '';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+if (targetUrl === FALLBACK) {
+  // 偵測失敗 — 直接導向官網,維持原 spinner 行為
+  setTimeout(() => { window.location.href = targetUrl; }, 600);
+  setTimeout(() => { document.getElementById('manual').style.display = 'block'; }, 2500);
+} else {
+  setTimeout(triggerDownload, 600);
+  // 1.5 秒後切換成「下載已開始」UI(瀏覽器無法可靠偵測下載完成,給明確視覺回饋取代旋轉動畫)
+  setTimeout(() => {
+    document.getElementById('title').textContent = '下載已開始';
+    document.getElementById('detected').textContent = '請查看瀏覽器下載列 / Downloads 資料夾';
+    document.getElementById('spinner').style.display = 'none';
+    document.getElementById('check').style.display = 'block';
+    document.getElementById('hint').innerHTML = '檔案正在下載中,完成後可關閉此頁面。<br>若沒看到下載開始,請從下方手動選擇或點「重新下載」。';
+    document.getElementById('manual').style.display = 'block';
+    document.getElementById('manual-title').textContent = '其他選項:';
+    const retry = document.getElementById('retry-btn');
+    retry.style.display = 'inline-block';
+    retry.onclick = triggerDownload;
+  }, 1500);
+}
 </script>
 </body>
 </html>

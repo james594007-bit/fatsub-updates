@@ -1,5 +1,5 @@
 {
-  "version": "1.0.7",
-  "message": "v1.0.7 已發布!\n\n🔧 Windows 顯卡相容性修復\n\nv1.0.6 在部分 Windows 用戶上 backend 起不來,本次修復 — 涵蓋 GTX 10 系列到最新 RTX 50 系列所有 NVIDIA 桌面顯卡,RTX 加速回到 v1.0.4 時代水準。\n\nMac 用戶不受此 hotfix 影響,看到通知可略過。\n\n— FatSub 開發者 James(佳欣老師)",
+  "version": "1.0.8",
+  "message": "v1.0.8 已發布!\n\n🔧 Windows 穩定性修復\n修復部分 NVIDIA 顯卡(RTX 30 / 40 系等)辨識途中跳「連線失敗」中斷的問題,GPU 加速全面恢復;辨識進度顯示更平順;並強化模型下載的穩定性。\n\n🍎 Mac:本次同步更新,持續優化整體穩定與使用體驗,不影響現有使用。\n\n— FatSub 開發者 James(佳欣老師)",
   "download": "https://james594007-bit.github.io/fatsub-updates/download.html"
 }

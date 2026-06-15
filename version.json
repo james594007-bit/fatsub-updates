@@ -1,5 +1,5 @@
 {
-  "version": "1.0.8",
-  "message": "v1.0.8 已發布!\n\n🔧 Windows 穩定性修復\n修復部分 NVIDIA 顯卡(RTX 30 / 40 系等)辨識途中跳「連線失敗」中斷的問題,GPU 加速全面恢復;辨識進度顯示更平順;並強化模型下載的穩定性。\n\n🍎 Mac:本次同步更新,持續優化整體穩定與使用體驗,不影響現有使用。\n\n— FatSub 開發者 James(佳欣老師)",
+  "version": "1.0.9",
+  "message": "v1.0.9 已發布!\n\n✂️ 字幕斷句大幅優化\n・Windows 中文斷句修復:不再整段字擠成一行\n・中英文都不再把詞語、單字切斷,字幕更整齊好讀\n・英文每行長度對齊國際字幕標準\n\n📥 開啟軟體點更新,或到下載頁取得最新版。\n\n— FatSub 開發者 James(佳欣老師)",
   "download": "https://james594007-bit.github.io/fatsub-updates/download.html"
 }

@@ -1,5 +1,5 @@
 {
-  "version": "1.0.9",
-  "message": "v1.0.9 已發布!\n\n✂️ 字幕斷句大幅優化\n・Windows 中文斷句修復:不再整段字擠成一行\n・中英文都不再把詞語、單字切斷,字幕更整齊好讀\n・英文每行長度對齊國際字幕標準\n\n📥 開啟軟體點更新,或到下載頁取得最新版。\n\n— FatSub 開發者 James(佳欣老師)",
+  "version": "1.0.10",
+  "message": "v1.0.10 已發布!\n\n🛠 穩定性修正\n・修好 Windows 偶發「辨識失敗 / 連線中斷」\n・修好硬字幕燒入偶發失敗\n・字幕間隙過小造成的閃爍,自動補順\n\n📥 開啟軟體點更新,或到下載頁取得最新版。\n\n— FatSub 開發者 James(佳欣老師)",
   "download": "https://james594007-bit.github.io/fatsub-updates/download.html"
 }

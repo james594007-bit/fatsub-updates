@@ -17,13 +17,46 @@
   .check { color: #00bcd4; font-size: 14px; letter-spacing: 2px; margin: 10px auto 20px; line-height: 1; }
   .retry-btn { display: inline-block; margin-top: 16px; padding: 8px 18px; background: transparent; color: #00bcd4; border: 1px solid #00bcd4; border-radius: 6px; cursor: pointer; font-size: 13px; }
   .retry-btn:hover { background: #00bcd4; color: #1a1a1a; }
+
+  /* ===== email gate 彈窗（DaVinci 風）===== */
+  #gate-overlay { position: fixed; inset: 0; background: rgba(10,10,10,0.82); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
+  .gate-card { max-width: 440px; width: 100%; box-sizing: border-box; background: #2a2a2a; border-radius: 12px; padding: 36px 30px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  .gate-card h2 { font-size: 21px; margin: 0 0 16px; line-height: 1.4; color: #e0e0e0; }
+  .gate-card .desc { color: #b0b0b0; line-height: 1.9; font-size: 14px; margin: 0 0 24px; }
+  .gate-card input[type="email"] { width: 100%; box-sizing: border-box; padding: 12px 14px; font-size: 15px; border: 1px solid #444; border-radius: 8px; background: #1a1a1a; color: #e0e0e0; outline: none; }
+  .gate-card input[type="email"]:focus { border-color: #00bcd4; }
+  .gate-card .err { color: #ff6b6b; font-size: 13px; min-height: 18px; margin: 8px 0 0; text-align: left; }
+  .gate-card button { width: 100%; margin-top: 12px; padding: 13px; font-size: 16px; font-weight: 600; border: none; border-radius: 8px; background: #00bcd4; color: #1a1a1a; cursor: pointer; }
+  .gate-card button:hover { background: #00d4ef; }
+  .gate-card button:disabled { opacity: 0.6; cursor: default; }
+  .gate-card .trust { color: #888; font-size: 12px; line-height: 1.7; margin: 18px 0 0; }
 </style>
 </head>
 <body>
+
+<!-- ===== email gate 彈窗 ===== -->
+<div id="gate-overlay">
+  <div class="gate-card">
+    <h2>下載 FatSub 前,先留個信箱</h2>
+    <p class="desc">
+      留下 email 就能進下載頁。<br>
+      之後台語辨識、新版更新上線,我也會第一時間通知你 ——<br>
+      信箱只用來寄 FatSub 的更新,不塞廣告、隨時可退訂。
+    </p>
+    <form id="gate-form" novalidate>
+      <input type="email" id="gate-email" placeholder="your@email.com" autocomplete="email" required>
+      <p class="err" id="gate-err"></p>
+      <button type="submit" id="gate-submit">前往下載頁面</button>
+    </form>
+    <p class="trust">FatSub 是一次買斷、100% 本地離線的字幕工具。7 天試用不用錢、不用填信用卡。</p>
+  </div>
+</div>
+
+<!-- ===== 下載中畫面（gate 通過後才動）===== -->
 <h1 id="title">FatSub 下載中...</h1>
 <p class="detected" id="detected">正在偵測你的系統</p>
 <div id="check" class="check" style="display:none;">— DOWNLOAD STARTED —</div>
-<div id="spinner" class="spinner"></div>
+<div id="spinner" class="spinner" style="display:none;"></div>
 <p id="hint">如果沒有自動開始下載,請稍候幾秒,或點下方手動選擇。</p>
 <div id="manual">
   <p style="margin-top:0;" id="manual-title">手動選擇版本:</p>
@@ -34,6 +67,15 @@
 </div>
 
 <script>
+// ===== CONFIG（James 建好 Google 表單後填這兩個值）=====
+// 1) FORM_ACTION：表單的 formResponse 端點（FatSub 下載名單，2026-06-29 接好）
+const FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSdGAhUSaTfI9QONC4j3gRQLlOrt2hfgLVMRsFuHRdsbyEv3SA/formResponse';
+// 2) EMAIL_ENTRY：Email 那一題的 entry ID
+const EMAIL_ENTRY = 'entry.2042206199';
+// 同瀏覽器填過一次就記住、之後不再擋（減少老客戶重複下載的摩擦）。不想記住改成 false
+const REMEMBER = true;
+// =====================================================
+
 const MAC_URL = 'https://github.com/james594007-bit/fatsub-updates/releases/latest/download/FatSub-arm64.dmg';
 const WIN_URL = 'https://github.com/james594007-bit/fatsub-updates/releases/latest/download/FatSub-Setup.exe';
 const FALLBACK = 'https://jamespang-school.com/fatsub/';
@@ -56,36 +98,74 @@ document.getElementById('mac-link').href = MAC_URL;
 document.getElementById('win-link').href = WIN_URL;
 
 function triggerDownload() {
-  // 用 <a download> click 觸發,避免 location.href 讓本頁停在 loading 狀態
   const a = document.createElement('a');
   a.href = targetUrl;
   a.rel = 'noopener';
-  // 同 origin 才能用 download 屬性,GitHub Releases 跨 origin 仍會依 Content-Disposition 觸發下載
   a.download = '';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
 }
 
-if (targetUrl === FALLBACK) {
-  // 偵測失敗 — 直接導向官網,維持原 spinner 行為
-  setTimeout(() => { window.location.href = targetUrl; }, 600);
-  setTimeout(() => { document.getElementById('manual').style.display = 'block'; }, 2500);
+// gate 通過後才跑的下載流程（原本 download.html 的行為）
+function startDownload() {
+  document.getElementById('spinner').style.display = 'block';
+  if (targetUrl === FALLBACK) {
+    setTimeout(() => { window.location.href = targetUrl; }, 600);
+    setTimeout(() => { document.getElementById('manual').style.display = 'block'; }, 2500);
+  } else {
+    setTimeout(triggerDownload, 600);
+    setTimeout(() => {
+      document.getElementById('title').textContent = '下載已開始';
+      document.getElementById('detected').textContent = '請查看瀏覽器下載列 / Downloads 資料夾';
+      document.getElementById('spinner').style.display = 'none';
+      document.getElementById('check').style.display = 'block';
+      document.getElementById('hint').innerHTML = '檔案正在下載中,完成後可關閉此頁面。<br>若沒看到下載開始,請從下方手動選擇或點「重新下載」。';
+      document.getElementById('manual').style.display = 'block';
+      document.getElementById('manual-title').textContent = '其他選項:';
+      const retry = document.getElementById('retry-btn');
+      retry.style.display = 'inline-block';
+      retry.onclick = triggerDownload;
+    }, 1500);
+  }
+}
+
+function passGate() {
+  document.getElementById('gate-overlay').style.display = 'none';
+  startDownload();
+}
+
+// ===== gate 邏輯 =====
+const overlay = document.getElementById('gate-overlay');
+const gateForm = document.getElementById('gate-form');
+const emailInput = document.getElementById('gate-email');
+const errEl = document.getElementById('gate-err');
+const btn = document.getElementById('gate-submit');
+
+function isValidEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+// 已填過 → 直接下載，不再擋
+if (REMEMBER && localStorage.getItem('fatsub_email_submitted') === '1') {
+  passGate();
 } else {
-  setTimeout(triggerDownload, 600);
-  // 1.5 秒後切換成「下載已開始」UI(瀏覽器無法可靠偵測下載完成,給明確視覺回饋取代旋轉動畫)
-  setTimeout(() => {
-    document.getElementById('title').textContent = '下載已開始';
-    document.getElementById('detected').textContent = '請查看瀏覽器下載列 / Downloads 資料夾';
-    document.getElementById('spinner').style.display = 'none';
-    document.getElementById('check').style.display = 'block';
-    document.getElementById('hint').innerHTML = '檔案正在下載中,完成後可關閉此頁面。<br>若沒看到下載開始,請從下方手動選擇或點「重新下載」。';
-    document.getElementById('manual').style.display = 'block';
-    document.getElementById('manual-title').textContent = '其他選項:';
-    const retry = document.getElementById('retry-btn');
-    retry.style.display = 'inline-block';
-    retry.onclick = triggerDownload;
-  }, 1500);
+  emailInput.focus();
+  gateForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const email = emailInput.value.trim();
+    errEl.textContent = '';
+    if (!email) { errEl.textContent = '請先填 email'; return; }
+    if (!isValidEmail(email)) { errEl.textContent = 'email 格式看起來不太對,再確認一下'; return; }
+
+    btn.disabled = true;
+    btn.textContent = '前往下載頁…';
+
+    const body = new URLSearchParams();
+    body.append(EMAIL_ENTRY, email);
+
+    const done = (function () { let c = false; return function () { if (c) return; c = true; if (REMEMBER) { try { localStorage.setItem('fatsub_email_submitted', '1'); } catch (e) {} } passGate(); }; })();
+    setTimeout(done, 1200); // 保險：網路慢也一定放行
+    fetch(FORM_ACTION, { method: 'POST', mode: 'no-cors', body }).then(done).catch(done);
+  });
 }
 </script>
 </body>

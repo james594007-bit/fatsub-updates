@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>FatSub 更新下載</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans TC', sans-serif; text-align: center; padding: 60px 20px; background: #1a1a1a; color: #e0e0e0; margin: 0; }
+  h1 { font-size: 22px; margin: 0 0 12px; }
+  .detected { color: #00bcd4; font-size: 14px; margin-bottom: 30px; }
+  .spinner { border: 3px solid #333; border-top-color: #00bcd4; border-radius: 50%; width: 36px; height: 36px; animation: spin 0.8s linear infinite; margin: 20px auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  p { color: #999; line-height: 1.8; font-size: 13px; }
+  #manual { display: none; margin-top: 30px; padding: 20px; background: #2a2a2a; border-radius: 8px; max-width: 400px; margin-left: auto; margin-right: auto; }
+  a { color: #00bcd4; text-decoration: none; margin: 0 10px; }
+  a:hover { text-decoration: underline; }
+  .check { color: #00bcd4; font-size: 14px; letter-spacing: 2px; margin: 10px auto 20px; line-height: 1; }
+  .retry-btn { display: inline-block; margin-top: 16px; padding: 8px 18px; background: transparent; color: #00bcd4; border: 1px solid #00bcd4; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .retry-btn:hover { background: #00bcd4; color: #1a1a1a; }
+</style>
+</head>
+<body>
+
+<!--
+  update.html — 給「App 內按前往下載」的老客戶用的更新頁。
+  刻意「沒有 email 關卡」:老客戶抓更新不該被逼再留一次 mail(那會污染下載名單)。
+  官網潛客請走 download.html(有 gate,負責捕捉名單)。兩頁分工,別合併。
+-->
+<h1 id="title">FatSub 更新下載中...</h1>
+<p class="detected" id="detected">正在偵測你的系統</p>
+<div id="check" class="check" style="display:none;">— DOWNLOAD STARTED —</div>
+<div id="spinner" class="spinner"></div>
+<p id="hint">如果沒有自動開始下載,請稍候幾秒,或點下方手動選擇。</p>
+<div id="manual">
+  <p style="margin-top:0;" id="manual-title">手動選擇版本:</p>
+  <a id="mac-link" href="#">Mac</a>
+  <a id="win-link" href="#">Windows</a>
+  <a href="https://fathub.tw/fatsub/">官方網站</a>
+  <div><span class="retry-btn" id="retry-btn" style="display:none;">重新下載</span></div>
+</div>
+
+<script>
+const MAC_URL = 'https://github.com/james594007-bit/fatsub-updates/releases/latest/download/FatSub-arm64.dmg';
+const WIN_URL = 'https://github.com/james594007-bit/fatsub-updates/releases/latest/download/FatSub-Setup.exe';
+const FALLBACK = 'https://fathub.tw/fatsub/';
+
+const ua = navigator.userAgent;
+const platform = navigator.platform || '';
+
+let targetUrl = FALLBACK;
+let platformName = '未知系統,導向官網';
+if (/Mac|iPhone|iPad|iPod/.test(ua) || /Mac/.test(platform)) {
+  targetUrl = MAC_URL;
+  platformName = '偵測到 macOS,正在下載 Mac 版';
+} else if (/Windows/.test(ua) || /Win/.test(platform)) {
+  targetUrl = WIN_URL;
+  platformName = '偵測到 Windows,正在下載 Windows 版';
+}
+
+document.getElementById('detected').textContent = platformName;
+document.getElementById('mac-link').href = MAC_URL;
+document.getElementById('win-link').href = WIN_URL;
+
+function triggerDownload() {
+  const a = document.createElement('a');
+  a.href = targetUrl;
+  a.rel = 'noopener';
+  a.download = '';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+// 沒有 gate:進頁面直接開始下載
+if (targetUrl === FALLBACK) {
+  setTimeout(() => { window.location.href = targetUrl; }, 600);
+  setTimeout(() => { document.getElementById('manual').style.display = 'block'; }, 2500);
+} else {
+  setTimeout(triggerDownload, 600);
+  setTimeout(() => {
+    document.getElementById('title').textContent = '下載已開始';
+    document.getElementById('detected').textContent = '請查看瀏覽器下載列 / Downloads 資料夾';
+    document.getElementById('spinner').style.display = 'none';
+    document.getElementById('check').style.display = 'block';
+    document.getElementById('hint').innerHTML = '檔案正在下載中,完成後可關閉此頁面。<br>若沒看到下載開始,請從下方手動選擇或點「重新下載」。';
+    document.getElementById('manual').style.display = 'block';
+    document.getElementById('manual-title').textContent = '其他選項:';
+    const retry = document.getElementById('retry-btn');
+    retry.style.display = 'inline-block';
+    retry.onclick = triggerDownload;
+  }, 1500);
+}
+</script>
+</body>
+</html>

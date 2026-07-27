@@ -62,35 +62,64 @@
   <p style="margin-top:0;" id="manual-title">手動選擇版本:</p>
   <a id="mac-link" href="#">Mac</a>
   <a id="win-link" href="#">Windows</a>
-  <a href="https://jamespang-school.com/fatsub/">官方網站</a>
+  <a href="https://fathub.tw/fatsub/">官方網站</a>
   <div><span class="retry-btn" id="retry-btn" style="display:none;">重新下載</span></div>
 </div>
 
 <script>
-// ===== CONFIG（James 建好 Google 表單後填這兩個值）=====
+// ===== CONFIG（James 建好 Google 表單後填這幾個值）=====
 // 1) FORM_ACTION：表單的 formResponse 端點（FatSub 下載名單，2026-06-29 接好）
 const FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSdGAhUSaTfI9QONC4j3gRQLlOrt2hfgLVMRsFuHRdsbyEv3SA/formResponse';
 // 2) EMAIL_ENTRY：Email 那一題的 entry ID
 const EMAIL_ENTRY = 'entry.2042206199';
+// 3) PLATFORM_ENTRY：「平台」那一題的 entry ID（簡答題，值為 mac / win / unknown）
+//    留空 = 不送這一欄，行為跟以前一樣。表單加好題目後把 entry.xxxxx 填進來即可。
+const PLATFORM_ENTRY = '';
+// 4) SOURCE_ENTRY：「來源」那一題的 entry ID（簡答題，值為 新下載 / 回訪）
+//    留空 = 不送、也不記回訪。填了才會啟用下面的 TRACK_REVISIT。
+const SOURCE_ENTRY = '';
 // 同瀏覽器填過一次就記住、之後不再擋（減少老客戶重複下載的摩擦）。不想記住改成 false
 const REMEMBER = true;
+// 回訪（已填過 email、被 REMEMBER 放行）也靜默補送一筆，只為了算「重複下載」次數。
+// 需要 SOURCE_ENTRY 有值才會動；名單去重在儀表板那端做，不影響原本的 unique 統計。
+const TRACK_REVISIT = true;
 // =====================================================
 
 const MAC_URL = 'https://github.com/james594007-bit/fatsub-updates/releases/latest/download/FatSub-arm64.dmg';
 const WIN_URL = 'https://github.com/james594007-bit/fatsub-updates/releases/latest/download/FatSub-Setup.exe';
-const FALLBACK = 'https://jamespang-school.com/fatsub/';
+const FALLBACK = 'https://fathub.tw/fatsub/';
 
 const ua = navigator.userAgent;
 const platform = navigator.platform || '';
 
+// ?os=mac / ?os=win：官網按鈕明講要哪個版本時，以參數為準（使用者可能在 Mac 上幫同事抓 Win 版）。
+// 沒帶參數才退回 UA 自動偵測。
+const osParam = (new URLSearchParams(location.search).get('os') || '').toLowerCase();
+
 let targetUrl = FALLBACK;
 let platformName = '未知系統,導向官網';
-if (/Mac|iPhone|iPad|iPod/.test(ua) || /Mac/.test(platform)) {
+let osKey = 'unknown';
+if (osParam === 'mac' || osParam === 'win') {
+  osKey = osParam;
+  targetUrl = osParam === 'mac' ? MAC_URL : WIN_URL;
+  platformName = osParam === 'mac' ? '正在下載 Mac 版' : '正在下載 Windows 版';
+} else if (/Mac|iPhone|iPad|iPod/.test(ua) || /Mac/.test(platform)) {
+  osKey = 'mac';
   targetUrl = MAC_URL;
   platformName = '偵測到 macOS,正在下載 Mac 版';
 } else if (/Windows/.test(ua) || /Win/.test(platform)) {
+  osKey = 'win';
   targetUrl = WIN_URL;
   platformName = '偵測到 Windows,正在下載 Windows 版';
+}
+
+// 把一筆紀錄送進 Google 表單。source = 新下載 / 回訪
+function report(email, source) {
+  const body = new URLSearchParams();
+  body.append(EMAIL_ENTRY, email);
+  if (PLATFORM_ENTRY) body.append(PLATFORM_ENTRY, osKey);
+  if (SOURCE_ENTRY) body.append(SOURCE_ENTRY, source);
+  return fetch(FORM_ACTION, { method: 'POST', mode: 'no-cors', body });
 }
 
 document.getElementById('detected').textContent = platformName;
@@ -146,6 +175,11 @@ function isValidEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 
 // 已填過 → 直接下載，不再擋
 if (REMEMBER && localStorage.getItem('fatsub_email_submitted') === '1') {
+  // 靜默補送一筆「回訪」，只為了把重複下載從新用戶數裡分出來。失敗就算了，不擋下載。
+  if (TRACK_REVISIT && SOURCE_ENTRY) {
+    const known = localStorage.getItem('fatsub_email') || '';
+    if (known) { try { report(known, '回訪'); } catch (e) {} }
+  }
   passGate();
 } else {
   emailInput.focus();
@@ -159,12 +193,9 @@ if (REMEMBER && localStorage.getItem('fatsub_email_submitted') === '1') {
     btn.disabled = true;
     btn.textContent = '前往下載頁…';
 
-    const body = new URLSearchParams();
-    body.append(EMAIL_ENTRY, email);
-
-    const done = (function () { let c = false; return function () { if (c) return; c = true; if (REMEMBER) { try { localStorage.setItem('fatsub_email_submitted', '1'); } catch (e) {} } passGate(); }; })();
+    const done = (function () { let c = false; return function () { if (c) return; c = true; if (REMEMBER) { try { localStorage.setItem('fatsub_email_submitted', '1'); localStorage.setItem('fatsub_email', email); } catch (e) {} } passGate(); }; })();
     setTimeout(done, 1200); // 保險：網路慢也一定放行
-    fetch(FORM_ACTION, { method: 'POST', mode: 'no-cors', body }).then(done).catch(done);
+    report(email, '新下載').then(done).catch(done);
   });
 }
 </script>

@@ -40,6 +40,20 @@
 </div>
 
 <script>
+// ===== CONFIG =====
+// GitHub 的下載數把「新用戶下載」和「老用戶更新」算在同一顆 dmg/exe 上，分不開。
+// 這頁只有老用戶會進來（App 內按「前往下載」），所以在這裡靜默記一筆，
+// 之後就能算：真實新用戶 ≒ 總下載數 − 這裡的更新次數。
+// 不收 email、不擋人，純計數。留空 = 不送，行為跟以前完全一樣。
+const EVENT_FORM_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSdGAhUSaTfI9QONC4j3gRQLlOrt2hfgLVMRsFuHRdsbyEv3SA/formResponse';
+const EMAIL_ENTRY = 'entry.2042206199';   // 這頁一律送固定值，不是真的信箱
+const SOURCE_ENTRY = '';                  // 「來源」題的 entry ID，留空則整筆不送
+const PLATFORM_ENTRY = '';                // 「平台」題的 entry ID，可留空
+// 佔位 email。刻意長得像 email（儀表板的 CSV 解析靠 @ 認欄位），且不含逗號（含逗號會撞切欄）。
+// 儀表板認得這個網域，會把它排除在名單外、單獨算成「更新次數」。
+const UPDATE_MARKER = 'update@fatsub.internal';
+// ==================
+
 const MAC_URL = 'https://github.com/james594007-bit/fatsub-updates/releases/latest/download/FatSub-arm64.dmg';
 const WIN_URL = 'https://github.com/james594007-bit/fatsub-updates/releases/latest/download/FatSub-Setup.exe';
 const FALLBACK = 'https://fathub.tw/fatsub/';
@@ -47,14 +61,35 @@ const FALLBACK = 'https://fathub.tw/fatsub/';
 const ua = navigator.userAgent;
 const platform = navigator.platform || '';
 
+// App 若有帶 ?os=mac / ?os=win 就以參數為準，沒帶才靠 UA 猜
+const osParam = (new URLSearchParams(location.search).get('os') || '').toLowerCase();
+
 let targetUrl = FALLBACK;
 let platformName = '未知系統,導向官網';
-if (/Mac|iPhone|iPad|iPod/.test(ua) || /Mac/.test(platform)) {
+let osKey = 'unknown';
+if (osParam === 'mac' || osParam === 'win') {
+  osKey = osParam;
+  targetUrl = osParam === 'mac' ? MAC_URL : WIN_URL;
+  platformName = osParam === 'mac' ? '正在下載 Mac 版' : '正在下載 Windows 版';
+} else if (/Mac|iPhone|iPad|iPod/.test(ua) || /Mac/.test(platform)) {
+  osKey = 'mac';
   targetUrl = MAC_URL;
   platformName = '偵測到 macOS,正在下載 Mac 版';
 } else if (/Windows/.test(ua) || /Win/.test(platform)) {
+  osKey = 'win';
   targetUrl = WIN_URL;
   platformName = '偵測到 Windows,正在下載 Windows 版';
+}
+
+// 靜默計數：失敗、被擋、離線都無所謂，絕不影響下載
+if (SOURCE_ENTRY) {
+  try {
+    const body = new URLSearchParams();
+    body.append(EMAIL_ENTRY, UPDATE_MARKER);
+    body.append(SOURCE_ENTRY, '更新');
+    if (PLATFORM_ENTRY) body.append(PLATFORM_ENTRY, osKey);
+    fetch(EVENT_FORM_ACTION, { method: 'POST', mode: 'no-cors', body }).catch(() => {});
+  } catch (e) {}
 }
 
 document.getElementById('detected').textContent = platformName;

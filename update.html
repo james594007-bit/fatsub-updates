@@ -17,6 +17,14 @@
   .check { color: #00bcd4; font-size: 14px; letter-spacing: 2px; margin: 10px auto 20px; line-height: 1; }
   .retry-btn { display: inline-block; margin-top: 16px; padding: 8px 18px; background: transparent; color: #00bcd4; border: 1px solid #00bcd4; border-radius: 6px; cursor: pointer; font-size: 13px; }
   .retry-btn:hover { background: #00bcd4; color: #1a1a1a; }
+
+  /* ===== 問卷區塊：更新頁是唯一能接觸到「裝了但沒留信箱」那群人的地方 ===== */
+  #survey { display: none; margin: 36px auto 0; padding: 26px 24px; background: #2a2a2a; border: 1px solid #383838; border-radius: 10px; max-width: 460px; text-align: left; }
+  #survey h2 { font-size: 17px; margin: 0 0 12px; color: #e0e0e0; }
+  #survey p { color: #b0b0b0; font-size: 13.5px; line-height: 1.9; margin: 0 0 18px; }
+  #survey a.survey-btn { display: block; margin: 0; padding: 12px; text-align: center; background: #00bcd4; color: #1a1a1a; border-radius: 8px; font-size: 15px; font-weight: 600; }
+  #survey a.survey-btn:hover { background: #00d4ef; text-decoration: none; color: #1a1a1a; }
+  #survey .later { color: #777; font-size: 12px; text-align: center; margin: 12px 0 0; }
 </style>
 </head>
 <body>
@@ -39,6 +47,17 @@
   <div><span class="retry-btn" id="retry-btn" style="display:none;">重新下載</span></div>
 </div>
 
+<div id="survey">
+  <h2>想請大家幫個忙</h2>
+  <p>
+    FatSub 接下來要做什麼,我想先聽大家的意見。<br>
+    花一分鐘填份問卷,告訴我你平常都剪什麼、最需要什麼。<br>
+    順便留個信箱,新版上線我第一時間通知大家。
+  </p>
+  <a class="survey-btn" id="survey-link" href="#" target="_blank" rel="noopener">我來填(約 1 分鐘)</a>
+  <p class="later">不填也完全不影響使用,更新已經下載好了。</p>
+</div>
+
 <script>
 // ===== CONFIG =====
 // GitHub 的下載數把「新用戶下載」和「老用戶更新」算在同一顆 dmg/exe 上，分不開。
@@ -52,6 +71,10 @@ const PLATFORM_ENTRY = 'entry.1433476378';                // 「平台」題的 
 // 佔位 email。刻意長得像 email（儀表板的 CSV 解析靠 @ 認欄位），且不含逗號（含逗號會撞切欄）。
 // 儀表板認得這個網域，會把它排除在名單外、單獨算成「更新次數」。
 const UPDATE_MARKER = 'update@fatsub.internal';
+// SURVEY_URL：問卷表單網址（另開一張表，別跟下載名單混在同一張）。
+// 這頁是唯一能接觸到「裝了 FatSub 但從沒留過信箱」那群人的地方 —— 他們一定會經過這裡。
+// 留空 = 整塊問卷不顯示，頁面行為跟以前完全一樣。
+const SURVEY_URL = '';
 // ==================
 
 const MAC_URL = 'https://github.com/james594007-bit/fatsub-updates/releases/latest/download/FatSub-arm64.dmg';
@@ -123,6 +146,11 @@ if (targetUrl === FALLBACK) {
     const retry = document.getElementById('retry-btn');
     retry.style.display = 'inline-block';
     retry.onclick = triggerDownload;
+    // 問卷擺在下載開始「之後」才出現：先把人要的東西給他，再開口請他幫忙
+    if (SURVEY_URL) {
+      document.getElementById('survey-link').href = SURVEY_URL;
+      document.getElementById('survey').style.display = 'block';
+    }
   }, 1500);
 }
 </script>

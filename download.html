@@ -122,6 +122,19 @@ function report(email, source) {
   return fetch(FORM_ACTION, { method: 'POST', mode: 'no-cors', body });
 }
 
+// 靜默記一筆「到達下載頁」。沒有這個,只看得到「有人來官網、但沒人留信箱」,
+// 分不出是斷在「產品頁 → 下載頁」還是「下載頁 → 填 email」—— 兩個的解法完全不同。
+// 用固定標記當 email,不是真的信箱;儀表板認得 @fatsub.internal,會排除在名單外只算事件。
+if (SOURCE_ENTRY) {
+  try {
+    const b = new URLSearchParams();
+    b.append(EMAIL_ENTRY, 'arrive@fatsub.internal');
+    b.append(SOURCE_ENTRY, '到達');
+    if (PLATFORM_ENTRY) b.append(PLATFORM_ENTRY, osKey);
+    fetch(FORM_ACTION, { method: 'POST', mode: 'no-cors', body: b }).catch(() => {});
+  } catch (e) {}
+}
+
 document.getElementById('detected').textContent = platformName;
 document.getElementById('mac-link').href = MAC_URL;
 document.getElementById('win-link').href = WIN_URL;

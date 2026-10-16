@@ -41,14 +41,18 @@
     <p class="desc">
       留下 email 就能進下載頁。<br>
       新版更新上線時,我會第一時間通知大家 ——<br>
-      信箱只用來寄 FatSub 的更新,不塞廣告、隨時可退訂。
+      預設只寄 FatSub 更新通知；操作教學可在下方自行選擇。<br>可隨時透過信件取消訂閱。
     </p>
     <form id="gate-form" novalidate>
       <input type="email" id="gate-email" placeholder="your@email.com" autocomplete="email" required>
+      <label style="display:flex;gap:10px;align-items:flex-start;text-align:left;font-size:14px;line-height:1.7;margin:16px 0;color:#ddd;cursor:pointer">
+        <input type="checkbox" id="tutorial-opt-in" style="width:18px;height:18px;flex:0 0 18px;margin-top:4px">
+        <span>我也想收到 FatSub 操作教學與使用協助，可隨時退訂。<br><small style="color:#aaa">自由選擇，不勾選也能下載。</small></span>
+      </label>
       <p class="err" id="gate-err"></p>
       <button type="submit" id="gate-submit">前往下載頁面</button>
     </form>
-    <p class="trust">FatSub 是一次買斷、100% 本地離線的字幕工具。7 天試用不用錢、不用填信用卡。</p>
+    <p class="trust">本機辨識模式不需上傳素材。下載試用不用綁信用卡；試用限制與方案請見官網。</p>
   </div>
 </div>
 
@@ -114,11 +118,15 @@ if (osParam === 'mac' || osParam === 'win') {
 }
 
 // 把一筆紀錄送進 Google 表單。source = 新下載 / 回訪
-function report(email, source) {
+function report(email, source, tutorialChoice) {
   const body = new URLSearchParams();
   body.append(EMAIL_ENTRY, email);
   if (PLATFORM_ENTRY) body.append(PLATFORM_ENTRY, osKey);
-  if (SOURCE_ENTRY) body.append(SOURCE_ENTRY, source);
+  // 選擇與告知版本隨既有來源欄一起保存；時間由 Google 表單記錄。
+  const recordedSource = typeof tutorialChoice === 'boolean'
+    ? source + '|tutorial=' + (tutorialChoice ? 'yes' : 'no') + '|notice=fatsub-tutorial-v1-20261016|page=github-download'
+    : source;
+  if (SOURCE_ENTRY) body.append(SOURCE_ENTRY, recordedSource);
   return fetch(FORM_ACTION, { method: 'POST', mode: 'no-cors', body });
 }
 
@@ -208,7 +216,7 @@ if (REMEMBER && localStorage.getItem('fatsub_email_submitted') === '1') {
 
     const done = (function () { let c = false; return function () { if (c) return; c = true; if (REMEMBER) { try { localStorage.setItem('fatsub_email_submitted', '1'); localStorage.setItem('fatsub_email', email); } catch (e) {} } passGate(); }; })();
     setTimeout(done, 1200); // 保險：網路慢也一定放行
-    report(email, '新下載').then(done).catch(done);
+    report(email, '新下載', document.getElementById('tutorial-opt-in').checked).then(done).catch(done);
   });
 }
 </script>

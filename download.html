@@ -41,14 +41,10 @@
     <p class="desc">
       留下 email 就能進下載頁。<br>
       新版更新上線時,我會第一時間通知大家 ——<br>
-      預設只寄 FatSub 更新通知；操作教學可在下方自行選擇。<br>可隨時透過信件取消訂閱。
+      信箱用來接收 FatSub 更新通知，可隨時退訂。
     </p>
     <form id="gate-form" novalidate>
       <input type="email" id="gate-email" placeholder="your@email.com" autocomplete="email" required>
-      <label style="display:flex;gap:10px;align-items:flex-start;text-align:left;font-size:14px;line-height:1.7;margin:16px 0;color:#ddd;cursor:pointer">
-        <input type="checkbox" id="tutorial-opt-in" style="width:18px;height:18px;flex:0 0 18px;margin-top:4px">
-        <span>我也想收到 FatSub 操作教學與使用協助，可隨時退訂。<br><small style="color:#aaa">自由選擇，不勾選也能下載。</small></span>
-      </label>
       <p class="err" id="gate-err"></p>
       <button type="submit" id="gate-submit">前往下載頁面</button>
     </form>
@@ -70,6 +66,18 @@
   <div><span class="retry-btn" id="retry-btn" style="display:none;">重新下載</span></div>
 </div>
 
+<section id="tutorial-after" hidden style="max-width:440px;margin:28px auto;padding:24px;border:1px solid #444;border-radius:16px;text-align:left;background:#222">
+  <h2 style="font-size:20px;margin:0 0 12px">第一次使用？先看這支操作示範</h2>
+  <p style="color:#bbb;line-height:1.7">帶你順手完成字幕的播放、檢查與修改。</p>
+  <a href="https://youtu.be/0vGoh2cv1oA" target="_blank" rel="noopener" style="color:#00c5d9;font-weight:bold">觀看操作示範 ↗</a>
+  <form id="tutorial-form" style="margin-top:24px">
+    <p style="color:#bbb;font-size:14px;line-height:1.7">也想收到 FatSub 操作教學與使用協助？按下方按鈕即可登記，可隨時退訂。</p>
+    <label for="tutorial-email" style="font-size:14px">收件信箱</label>
+    <input id="tutorial-email" type="email" required autocomplete="email" style="box-sizing:border-box;width:100%;padding:10px;margin:8px 0 12px;background:#111;color:white;border:1px solid #666;border-radius:6px">
+    <button id="tutorial-send" type="submit" style="padding:10px 18px;background:#00b6cc;color:#111;border:0;border-radius:6px;cursor:pointer">寄教學給我</button>
+    <p id="tutorial-status" role="status" style="font-size:14px;color:#bbb;line-height:1.7"></p>
+  </form>
+</section>
 <script>
 // ===== CONFIG（James 建好 Google 表單後填這幾個值）=====
 // 1) FORM_ACTION：表單的 formResponse 端點（FatSub 下載名單，2026-06-29 接好）
@@ -182,6 +190,8 @@ function startDownload() {
 
 function passGate() {
   document.getElementById('gate-overlay').style.display = 'none';
+  document.getElementById('tutorial-after').hidden = false;
+  document.getElementById('tutorial-email').value = emailInput.value.trim() || rememberedEmail();
   startDownload();
 }
 
@@ -194,6 +204,24 @@ const btn = document.getElementById('gate-submit');
 
 function isValidEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 
+function rememberedEmail() { try { return localStorage.getItem('fatsub_email') || ''; } catch (_) { return ''; } }
+document.getElementById('tutorial-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const email = document.getElementById('tutorial-email').value.trim();
+  const status = document.getElementById('tutorial-status');
+  const button = document.getElementById('tutorial-send');
+  if (!isValidEmail(email)) { status.textContent = '請確認信箱格式。'; return; }
+  button.disabled = true;
+  status.textContent = '正在提交…';
+  try {
+    await report(email, '教學訂閱', true);
+    status.textContent = '登記已提交，核對後會安排教學；若已退訂，不會自動恢復訂閱。';
+    button.textContent = '已提交';
+  } catch (_) {
+    status.textContent = '暫時無法提交，請稍後重試；你仍可直接觀看示範。';
+    button.disabled = false;
+  }
+});
 // 已填過 → 直接下載，不再擋
 if (REMEMBER && localStorage.getItem('fatsub_email_submitted') === '1') {
   // 靜默補送一筆「回訪」，只為了把重複下載從新用戶數裡分出來。失敗就算了，不擋下載。
@@ -216,7 +244,7 @@ if (REMEMBER && localStorage.getItem('fatsub_email_submitted') === '1') {
 
     const done = (function () { let c = false; return function () { if (c) return; c = true; if (REMEMBER) { try { localStorage.setItem('fatsub_email_submitted', '1'); localStorage.setItem('fatsub_email', email); } catch (e) {} } passGate(); }; })();
     setTimeout(done, 1200); // 保險：網路慢也一定放行
-    report(email, '新下載', document.getElementById('tutorial-opt-in').checked).then(done).catch(done);
+    report(email, '新下載').then(done).catch(done);
   });
 }
 </script>
